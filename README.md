@@ -1,1 +1,1 @@
-# hiho
+Hiho - Open Source Password Manager on Rust
