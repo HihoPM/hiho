@@ -16,6 +16,7 @@ impl PasswordValidator {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn strength(password: &str) -> u8 {
         let mut score = 0;
         if password.len() >= 8 { score += 1 }

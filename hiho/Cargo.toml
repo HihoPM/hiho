@@ -5,7 +5,12 @@ edition = "2024"
 
 [dependencies]
 tempfile = "3.3"
-aes = "0.7"
+aes = "0.8.4"
+cipher = "0.4" 
+typenum = "1.17"
+block-padding = "0.3"
+rand = "0.8"
+hex = "0.4"
 
 [dev-dependencies]
 tempfile = "3.3"

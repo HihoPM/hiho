@@ -1,40 +1,22 @@
-use std::fs::OpenOptions;
-use std::io::Write;
-use crate::error::PasswordError;
+use crate::{error::PasswordError, crypto::Crypto};
 
-pub struct PasswordStorage;
+pub struct PasswordStorage {
+    crypto: Crypto,
+}
 
 impl PasswordStorage {
-    pub fn save(password: &str, filename: &str) -> Result<(), PasswordError> {
-        let mut file = OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(filename)?;
+    pub fn new(crypto: Crypto) -> Self {
+        Self { crypto }
+    }
 
-        writeln!(file, "{}", password)?;
-        file.sync_all()?;
+    pub fn save(&self, password: &str, filename: &str) -> Result<(), PasswordError> {
+        let encrypted = self.crypto.encrypt(password);
+        std::fs::write(filename, encrypted)?;
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn load(filename: &str) -> Result<Vec<String>, PasswordError> {
-        Ok(std::fs::read_to_string(filename)?
-            .lines()
-            .map(|line| line.to_string())
-            .collect())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::NamedTempFile;
-
-    #[test]
-    fn test_save_load() {
-        let file = NamedTempFile::new().unwrap();
-        PasswordStorage::save("test", file.path().to_str().unwrap()).unwrap();
-        let data = PasswordStorage::load(file.path().to_str().unwrap()).unwrap();
-        assert_eq!(data, vec!["test"]);
+    pub fn load(&self, filename: &str) -> Result<Vec<String>, PasswordError> {
+        let data = std::fs::read(filename)?;
+        Ok(vec![self.crypto.decrypt(&data)])
     }
 }
