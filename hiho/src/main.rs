@@ -12,7 +12,9 @@ use std::io;
 fn main() -> Result<(), PasswordError> {
     println!("🔒 Менеджер паролей v0.1");
 
-    let crypto = Crypto::new();
+    let master_password = "your_master_password";
+    let derived_key = derive_key_from_password(master_password);
+    let crypto = Crypto::from_key(derived_key);
     println!("Сгенерирован ключ шифрования: {}", crypto.get_key_hex());
     println!("IV: {}", crypto.get_iv_hex());
 
