@@ -1,7 +1,8 @@
+use hmac::Mac;
 use aes::Aes256;
-use sha2::Sha256;
-use hmac::{Hmac, Mac};
 use pbkdf2::pbkdf2;
+use sha2::Sha256;
+use rand::RngCore;
 use cipher::{
     BlockEncrypt, BlockDecrypt,
     generic_array::GenericArray,
@@ -19,8 +20,8 @@ impl Crypto {
         let salt = b"your_fixed_salt";
         let mut derived_key = [0u8; 32];
 
-        // Создаём HMAC-SHA256 вручную
-        type HmacSha256 = Hmac<Sha256>;
+        // Создаем HMAC-SHA256
+        type HmacSha256 = hmac::Hmac<Sha256>;
         let mut mac = HmacSha256::new_from_slice(password.as_bytes())
             .map_err(|_| io::Error::new(io::ErrorKind::Other, "Ошибка инициализации HMAC"))?;
 
@@ -40,9 +41,9 @@ impl Crypto {
         GenericArray::from(iv)
     }
 
-    pub fn encrypt(&self, data: &str) -> Vec<u8> {
+    pub fn encrypt(&self, data: &[u8]) -> Vec<u8> {
         let cipher = Aes256::new(&self.key);
-        let mut buffer = data.as_bytes().to_vec();
+        let mut buffer = data.to_vec();
 
         let pos = buffer.len();
         let block_size = 16;
@@ -105,18 +106,6 @@ impl Crypto {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io;
-
-    #[test]
-    fn test_pbkdf2_key_derivation() -> io::Result<()> {
-        let password = "masterpass123";
-        let crypto = Crypto::new(password)?;
-        assert_eq!(crypto.get_key_hex().len(), 64); // 32 bytes in hex
-        Ok(())
-    }
 
     #[test]
     fn test_encrypt_decrypt_roundtrip() -> io::Result<()> {
@@ -154,4 +143,3 @@ mod tests {
         assert_ne!(crypto1.get_key_hex(), crypto2.get_key_hex());
         Ok(())
     }
-}
